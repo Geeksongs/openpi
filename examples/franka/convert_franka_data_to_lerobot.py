@@ -55,7 +55,8 @@ def convert_to_lerobot(
     print(f"Push to hub:    {push_to_hub}")
 
     # Clean up any existing dataset in the output directory
-    output_path = HF_LEROBOT_HOME / repo_id
+    # output_path = HF_LEROBOT_HOME / repo_id
+    output_path = Path("/anvil/scratch/x-jsong13/openpi_maniskill/finetune_pi") / repo_id
     if output_path.exists():
         print(f"\n⚠️  Removing existing dataset at: {output_path}")
         shutil.rmtree(output_path)
