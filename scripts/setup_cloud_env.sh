@@ -21,7 +21,7 @@ echo "  Config uses absolute path for local dataset"
 echo ""
 
 # Check if dataset exists (config uses absolute path)
-DATASET_PATH="/anvil/scratch/x-jsong13/openpi_maniskill/finetune_pi/franka/maniskill_pickcube_200"
+DATASET_PATH="/home/x-jsong13/.cache/huggingface/lerobot/franka_maniskill_pickcube_200"
 if [ -d "$DATASET_PATH" ]; then
     echo "✓ Dataset found: $DATASET_PATH"
     # Check key directories
