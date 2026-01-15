@@ -25,11 +25,11 @@ DATASET_PATH="/home/x-jsong13/.cache/huggingface/lerobot/franka_maniskill_pickcu
 if [ -d "$DATASET_PATH" ]; then
     echo "✓ Dataset found: $DATASET_PATH"
     # Check key directories
-    if [ -d "$DATASET_PATH/data" ] && [ -d "$DATASET_PATH/meta_data" ]; then
-        echo "✓ Dataset structure valid (data/ and meta_data/ exist)"
+    if [ -d "$DATASET_PATH/data" ] && [ -d "$DATASET_PATH/meta" ]; then
+        echo "✓ Dataset structure valid (data/ and meta/ exist)"
     else
         echo "⚠️  WARNING: Dataset structure incomplete"
-        echo "   Expected: data/ and meta_data/ directories"
+        echo "   Expected: data/ and meta/ directories"
     fi
 else
     echo "✗ ERROR: Dataset not found at $DATASET_PATH"
