@@ -60,7 +60,12 @@ rlds = [
 ]
 
 [tool.uv]
-override-dependencies = ["ml-dtypes==0.4.1", "tensorstore==0.1.74"]
+override-dependencies = [
+    "ml-dtypes==0.4.1",
+    "tensorstore==0.1.74",
+    # rerun-sdk 只在 macOS/Windows 安装，跳过 Linux（GLIBC 版本不兼容）
+    "rerun-sdk>=0.21.0; sys_platform == 'darwin' or sys_platform == 'win32'",
+]
 
 [tool.uv.sources]
 openpi-client = { workspace = true }
