@@ -751,7 +751,9 @@ _CONFIGS = [
             action_horizon=10,
         ),
         data=LeRobotFrankaDataConfig(
-            repo_id="franka/maniskill_pickcube_200",
+            # Use absolute path for local dataset (云端路径)
+            # For local development, change to: repo_id="franka/maniskill_pickcube_200"
+            repo_id="/anvil/scratch/x-jsong13/openpi_maniskill/finetune_pi/franka/maniskill_pickcube_200",
             base_config=DataConfig(
                 prompt_from_task=True,
             ),
