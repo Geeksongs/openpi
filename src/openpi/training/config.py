@@ -19,6 +19,7 @@ import openpi.models.pi0_fast as pi0_fast
 import openpi.models.tokenizer as _tokenizer
 import openpi.policies.aloha_policy as aloha_policy
 import openpi.policies.droid_policy as droid_policy
+import openpi.policies.franka_policy as franka_policy
 import openpi.policies.libero_policy as libero_policy
 import openpi.shared.download as _download
 import openpi.shared.normalize as _normalize
@@ -350,6 +351,50 @@ class LeRobotLiberoDataConfig(DataConfigFactory):
         return dataclasses.replace(
             self.create_base_config(assets_dirs, model_config),
             repack_transforms=repack_transform,
+            data_transforms=data_transforms,
+            model_transforms=model_transforms,
+        )
+
+
+@dataclasses.dataclass(frozen=True)
+class LeRobotFrankaDataConfig(DataConfigFactory):
+    """
+    Data config for Franka ManiSkill datasets.
+
+    This config is designed for datasets converted from ManiSkill h5 files using
+    examples/franka/convert_franka_data_to_lerobot.py
+    """
+
+    # If true, will convert joint actions to deltas. Gripper remains absolute.
+    # ManiSkill uses pd_joint_pos (absolute position control), so we need delta conversion.
+    use_delta_actions: bool = True
+
+    @override
+    def create(self, assets_dirs: pathlib.Path, model_config: _model.BaseModelConfig) -> DataConfig:
+        # No repack transform needed since we already use simple keys (image, state, actions, prompt)
+        # in the conversion script
+
+        # Data transforms: map dataset format to model format
+        data_transforms = _transforms.Group(
+            inputs=[franka_policy.FrankaInputs(model_type=model_config.model_type)],
+            outputs=[franka_policy.FrankaOutputs()],
+        )
+
+        # Add delta action transform if needed
+        # ManiSkill uses absolute joint positions, so we convert to deltas
+        # Delta mask: first 7 dims (joints) -> delta, last dim (gripper) -> absolute
+        if self.use_delta_actions:
+            delta_action_mask = _transforms.make_bool_mask(7, -1)  # First 7 are deltas, last 1 is absolute
+            data_transforms = data_transforms.push(
+                inputs=[_transforms.DeltaActions(delta_action_mask)],
+                outputs=[_transforms.AbsoluteActions(delta_action_mask)],
+            )
+
+        # Model transforms (tokenization, etc.)
+        model_transforms = ModelTransformFactory()(model_config)
+
+        return dataclasses.replace(
+            self.create_base_config(assets_dirs, model_config),
             data_transforms=data_transforms,
             model_transforms=model_transforms,
         )
@@ -695,6 +740,25 @@ _CONFIGS = [
         ).get_freeze_filter(),
         # Turn off EMA for LoRA finetuning.
         ema_decay=None,
+    ),
+    #
+    # Franka ManiSkill configs
+    #
+    TrainConfig(
+        name="pi0_franka_maniskill",
+        model=pi0_config.Pi0Config(
+            action_dim=8,  # 7 joints + 1 gripper
+            action_horizon=10,
+        ),
+        data=LeRobotFrankaDataConfig(
+            repo_id="franka/maniskill_pickcube_200",
+            base_config=DataConfig(
+                prompt_from_task=True,
+            ),
+        ),
+        weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
+        num_train_steps=20_000,
+        batch_size=32,
     ),
     TrainConfig(
         name="pi0_fast_libero",
