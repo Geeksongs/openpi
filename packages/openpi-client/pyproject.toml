@@ -17,11 +17,10 @@ build-backend = "hatchling.build"
 
 [tool.uv]
 dev-dependencies = ["pytest>=8.3.4"]
-
-[tool.uv.required-environments]
-sys_platform = "linux"
-platform_machine = "x86_64"
-glibc_version = "2.31"
+required-environments = [
+    "sys_platform == 'linux'",
+    "platform_machine == 'x86_64'",
+]
 
 [tool.ruff]
 line-length = 120
