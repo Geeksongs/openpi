@@ -137,9 +137,23 @@ def create_torch_dataset(
     if repo_id == "fake":
         return FakeDataset(model_config, num_samples=1024)
 
-    dataset_meta = lerobot_dataset.LeRobotDatasetMetadata(repo_id)
+    # Support absolute paths for local datasets
+    # If repo_id is an absolute path, extract root and use simple repo_id
+    root = None
+    if repo_id.startswith("/"):
+        # Absolute path provided, extract repo_id from last two path components
+        from pathlib import Path
+        root = repo_id
+        # Extract "namespace/dataset_name" from path (e.g., "/path/to/franka/dataset" -> "franka/dataset")
+        path_parts = Path(repo_id).parts
+        if len(path_parts) >= 2:
+            repo_id = f"{path_parts[-2]}/{path_parts[-1]}"
+        logging.info(f"Using local dataset: root={root}, repo_id={repo_id}")
+
+    dataset_meta = lerobot_dataset.LeRobotDatasetMetadata(repo_id, root=root)
     dataset = lerobot_dataset.LeRobotDataset(
-        data_config.repo_id,
+        repo_id,
+        root=root,
         delta_timestamps={
             key: [t / dataset_meta.fps for t in range(action_horizon)] for key in data_config.action_sequence_keys
         },
