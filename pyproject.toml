@@ -65,6 +65,8 @@ override-dependencies = [
     "tensorstore==0.1.74",
     # rerun-sdk 只在 macOS/Windows 安装，跳过 Linux（GLIBC 版本不兼容）
     "rerun-sdk>=0.21.0; sys_platform == 'darwin' or sys_platform == 'win32'",
+    # av (PyAV) 只用于生成视频可视化，训练不需要，跳过 Linux（避免 FFmpeg 编译问题）
+    "av; sys_platform == 'darwin' or sys_platform == 'win32'",
 ]
 
 [tool.uv.sources]

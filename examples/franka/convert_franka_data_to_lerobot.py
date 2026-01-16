@@ -76,26 +76,26 @@ def convert_to_lerobot(
     # Define features schema
     # Note: We keep the original 128x128 resolution (no resizing)
     # Note: We use 8-dim state (first 8 dimensions of qpos) to match action dimension
-    # Note: Using simple names (like LIBERO) instead of observation/ prefix
+    # Note: Using observation.* prefix for observations, following LeRobot best practices
     dataset = LeRobotDataset.create(
         repo_id=repo_id,
         robot_type="panda",
         fps=fps,
         features={
-            "image": {
+            "observation.image": {
                 "dtype": "image",
                 "shape": (128, 128, 3),  # Keep original resolution
                 "names": ["height", "width", "channel"],
             },
-            "state": {
+            "observation.state": {
                 "dtype": "float32",
                 "shape": (8,),  # 8-dim: first 8 dimensions of qpos (7 joints + 1 gripper)
                 "names": ["state"],
             },
-            "actions": {
+            "action": {
                 "dtype": "float32",
                 "shape": (8,),  # 8-dim: 7 joint positions + 1 gripper
-                "names": ["actions"],
+                "names": ["action"],
             },
         },
         image_writer_threads=10,
@@ -103,9 +103,9 @@ def convert_to_lerobot(
     )
 
     print(f"✓ Created LeRobot dataset with schema:")
-    print(f"  - image: (128, 128, 3) uint8")
-    print(f"  - state: (8,) float32")
-    print(f"  - actions: (8,) float32")
+    print(f"  - observation.image: (128, 128, 3) uint8")
+    print(f"  - observation.state: (8,) float32")
+    print(f"  - action: (8,) float32")
 
     # Convert and write episodes
     print(f"\n{'─'*80}")
@@ -121,9 +121,9 @@ def convert_to_lerobot(
         # Add each frame to the dataset
         for step_idx in range(num_steps):
             frame_data = {
-                "image": traj['rgb_images'][step_idx],  # (128, 128, 3) uint8
-                "state": traj['qpos'][step_idx, :8].astype(np.float32),  # Take first 8 dims
-                "actions": traj['actions'][step_idx].astype(np.float32),  # (8,) float32
+                "observation.image": traj['rgb_images'][step_idx],  # (128, 128, 3) uint8
+                "observation.state": traj['qpos'][step_idx, :8].astype(np.float32),  # Take first 8 dims
+                "action": traj['actions'][step_idx].astype(np.float32),  # (8,) float32
                 "task": task_name,  # Language instruction
             }
             dataset.add_frame(frame_data)
